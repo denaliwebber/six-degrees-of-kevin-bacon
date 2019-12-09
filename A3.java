@@ -16,10 +16,11 @@ public class A3
         {
             Graph g = new Graph();
             Scanner scan = new Scanner(System.in);
-            //Read in CSV file by first splitting by commas, then parse the data formatted in JSON using JSON parse
-            String splitByComma = ",\"";
-            String fileName = args[0]; //"tmdb_5000_credits.csv";
             
+            String splitByComma = ",\"";
+            String fileName = args[0]; //tmdb_5000_credits.csv and path
+            
+            //read in the tmbd CSV file
             BufferedReader  reader = new BufferedReader(new FileReader(fileName));
             String l = "";
 
@@ -28,58 +29,56 @@ public class A3
                 l = reader.readLine();
                 while ((l = reader.readLine()) != null) 
                 {
-                    //blank casts
+                    //if line is a blank casts
                     if(l.contains("[],[]"))
                     {
                         //skip over line
                         l = reader.readLine();
                     }
                 
-                    //build String array that holds all the info
+                    //array to holds all the info separated by commas
                     String[] castinfo = l.split(splitByComma);
                     String cast = "";
 
-                    //File had to be converted to a JSON Format, there were double quotes instead of single quotes. Replace doubles with singles
+                    //replace double quotes with single quotes to support the JSON format and parser
                     if(castinfo[1].contains("[{"))
                         cast = castinfo[1].replace("\"\"","\"");
-                    //checks for quotes within movie names
-                    else if(castinfo[2].contains("[{"))
-                        cast = castinfo[2].replace("\"\"","\"");
-                    //builds the Parse and JSON array
+                    
                     JSONParser parser = new JSONParser();
                     JSONArray castArray;
                     try
                     {
                         castArray  = (JSONArray) parser.parse(cast);
                     }
-                    catch(Exception e) //catches Exceptions that were thrown because of weird data within the cast JSON
+                    catch(Exception e) //catches any Exceptions thrown because of unexpected data within the file
                     {
+                        //skips over line and creates the castArray
                         l = reader.readLine();
                         castinfo = l.split(splitByComma);
                         cast = "";
                             if(castinfo[1].contains("[{"))
                                     cast = castinfo[1].replace("\"\"","\"");
-                            castArray  = (JSONArray) parser.parse(cast);
+                        castArray  = (JSONArray) parser.parse(cast);
                     }
 
-                    //Now we add the values into our graph
-                    for(Object o : castArray) //Go through each name in cast
+                    for(Object o : castArray) //Go through each name and ID number in cast
                     { 
                         JSONObject one = (JSONObject) o;
-                        String name1 = ((String) one.get("name"));
+
+                        String name1 = ((String) one.get("name"));  //extracts name of actor
                         
-                        int id1 = Math.toIntExact((Long)(one.get("id")));
+                        int id1 = Math.toIntExact((Long)(one.get("id")));   //extracts the actor's id number
                         
-                        //checks if Name exists in Map
+                        //checks if name exists in HashMap
                         if(!g.containsActor(name1.toLowerCase()))
                         {
                             g.addActor(name1, id1);
                         }
 
-                        for(Object j : castArray) //builds edge to cast member 1
+                        for(Object j : castArray) //adds an edge between actor and all other actors in the movie
                         { 
                             JSONObject two = (JSONObject) j;
-                            //convert everything to LowerCase so you do not have to worry about it within the PathFinders
+                            
                             String name2 = ((String) two.get("name"));
                             int id2 = Math.toIntExact((Long)two.get("id"));
                         
@@ -121,21 +120,13 @@ public class A3
 
             System.out.print("Path between "+path.get(0)+" and "+path.get(path.size()-1)+": ");
 
-            if (path.size()==1)
+            for (int i=0; i<path.size(); i++)
             {
-                System.out.println(path.get(0));
+                System.out.print(path.get(i));
+                if (i != path.size()-1)
+                   System.out.print(" --> ");
             }
-
-            else
-            {
-                for (int i=0; i<path.size(); i++)
-                {
-                    System.out.print(path.get(i));
-                    if (i != path.size()-1)
-                        System.out.print(" --> ");
-                }
-                System.out.println();
-            }
+            System.out.println();
         }
     }
 }

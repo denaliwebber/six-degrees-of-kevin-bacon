@@ -64,68 +64,67 @@ public class Graph
         Queue<String> queue = new LinkedList<String>();
         //an array to mark if a vertex has already been visited
         boolean visited [] = new boolean[maxID+1];
+        //an array to keep track of distances between a1 and each vertex
         int distances [] = new int[maxID+1];
+        //an array to keep track of which edge paths were taken from a1 to other vertices
         int path [] = new int[maxID+1];
+        //list that will return the actors names of the shortest path
         LinkedList<String> list = new LinkedList<String>();
-        int v = 0;
 
-        for (int i = 0; i < (maxID+1); i++)
+        for (int i = 0; i < (maxID+1); i++) //intialize all arrays for search
         {
             visited[i] = false;
             distances[i] = Integer.MAX_VALUE;
             path[i] = -1;
         }
 
-        list.add(caseCorrect.get(a1));
-        queue.add(a1);
-        int a1IdNum = actorToID.get(a1);
-        distances[a1IdNum] = 0;
+        list.add(caseCorrect.get(a1));  //add case correct version of the source actor
+        queue.add(a1);                  //add source vertex to queue
+        int a1IdNum = actorToID.get(a1);//save id number for actor to use as the vertex's index
+        distances[a1IdNum] = 0;         //set source vertex distance to 0
         if (!a1.equals(a2))
         {
             while (!queue.isEmpty())
             {
-            String actor = queue.remove();
-            int actorID = actorToID.get(actor);
-            visited[actorID] = true;
+                String actor = queue.remove();      //remove head of queue and save
+                int actorID = actorToID.get(actor);
+                visited[actorID] = true;            //mark removed head as visited
             
-            Iterator it = castGraph.get(actor).iterator();
-            while (it.hasNext())
-            {
-                String neighbour = (String) it.next();
-                int neighbourID = actorToID.get(neighbour);
-                if (visited[neighbourID] == false)
+                Iterator it = castGraph.get(actor).iterator();  //iterator for the set of neighbors of the actor
+                while (it.hasNext())
                 {
-                    if (distances[neighbourID] > (distances[actorID] + 1))
+                    String neighbour = (String) it.next();
+                    int neighbourID = actorToID.get(neighbour);
+                    if (visited[neighbourID] == false)          
                     {
-                        distances[neighbourID] = distances[actorID] + 1;
-                        path[neighbourID] = actorID;
-
-                        if (!queue.contains(neighbour))
+                        if (distances[neighbourID] > (distances[actorID]+1))    //compare distance at the neighbor to vertex + cost
                         {
+                            distances[neighbourID] = distances[actorID] + 1;
+                            path[neighbourID] = actorID;
                             queue.add(neighbour);
                         }
-                    }
-                    if (neighbour.equals(a2))
-                    {
-                        int index = actorToID.get(a2);
-                        while(index != a1IdNum)
+
+                        if (neighbour.equals(a2))   //create list to return when neighbor = destination vertex
                         {
-                            int idNum = path[index];
-                            String act = idToActor.get(idNum);
-                            if (act.equals(a1)==false)
+                            int index = actorToID.get(a2);
+                            while(index != a1IdNum)         //trace path back from destination index to source index
                             {
-                                list.add(caseCorrect.get(act));
-                            }
+                                int idNum = path[index];
+                                String act = idToActor.get(idNum);
+                                if (act.equals(a1)==false)
+                                {
+                                    list.add(caseCorrect.get(act));     //add actor to shortestPath list
+                                }
                             
-                            index = idNum;
+                                index = idNum;
+                            }
+                            list.add(caseCorrect.get(a2));  //add destination actor
+                            return list;
                         }
-                        list.add(caseCorrect.get(a2));
-                        return list;
                     }
-                }
-            }
-        }
+                }//end of inner while loop
+            }//end of outer while loop
         }
         return list;
-    }
+    }//end of shortestPath()
 }
